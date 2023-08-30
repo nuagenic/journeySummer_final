@@ -4,6 +4,7 @@ import url from "url";
 import { getLyrics } from "./modules/getLyrics.js";
 import { fetchImageURL } from "./modules/image.js";
 import { exec } from "child_process"; // Python 실행을 위한 모듈 추가
+import { connectDB } from "./util/database.js";
 
 const app = http.createServer(async (request, response) => {
   const _url = request.url;
@@ -29,7 +30,15 @@ const app = http.createServer(async (request, response) => {
 
             const lyrics = await getLyrics(trackName, artistName);
 
+            // openAI image 불러오기
             const imageURL = await fetchImageURL(trackName);
+
+            const db = (await connectDB).db("JourneySummer");
+            let result = await db
+              .collection("image_url")
+              .insertOne({ _id: { $oid: "1" }, img_url: { imageURL } });
+
+            console.log(result);
 
             response.writeHead(200, { "Content-Type": "text/plain" });
             response.end(
@@ -53,4 +62,4 @@ const app = http.createServer(async (request, response) => {
   }
 });
 
-app.listen(3000);
+app.listen(3001);
