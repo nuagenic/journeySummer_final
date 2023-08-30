@@ -2,6 +2,7 @@ import http from "http";
 import fs from "fs";
 import url from "url";
 import { getLyrics } from "./modules/getLyrics.js";
+import { fetchImageURL } from "./modules/image.js";
 import { exec } from "child_process"; // Python 실행을 위한 모듈 추가
 
 const app = http.createServer(async (request, response) => {
@@ -28,8 +29,12 @@ const app = http.createServer(async (request, response) => {
 
             const lyrics = await getLyrics(trackName, artistName);
 
+            const imageURL = await fetchImageURL(trackName);
+
             response.writeHead(200, { "Content-Type": "text/plain" });
-            response.end(`Track Name: ${trackName}\nLyrics:\n${lyrics}`);
+            response.end(
+              `Track Name: ${trackName}\n\nimageURL: ${imageURL}\n\nLyrics:\n${lyrics}`
+            );
           } catch (jsonError) {
             console.error(jsonError);
             response.writeHead(500);

@@ -1,22 +1,21 @@
-import { Configuration, OpenAIApi } from "openai";
+import { OpenAI } from "openai";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 // OpenAI API 환경 변수 설정
-const apiKey = process.env.OPENAI_API_KEY;
-const configuration = new Configuration({
-  apiKey: apiKey,
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
-// console.log(openai);
-// console.log(process.env.OPENAI_API_KEY);
 
-export async function fetchImageURL() {
+export async function fetchImageURL(title) {
   try {
-    const response = await openai.createImage({
-      prompt: "attention",
+    const response = await openai.images.generate({
+      prompt: title,
       n: 1,
       size: "256x256",
     });
-    const imageUrl = response.data.data[0].url;
+    const imageUrl = response.data[0].url;
     return imageUrl;
   } catch (error) {
     if (error.response) {
