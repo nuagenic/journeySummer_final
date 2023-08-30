@@ -1,7 +1,6 @@
 import http from "http";
 import fs from "fs";
 import url from "url";
-import { getLyrics } from "./modules/getLyrics.js";
 import { fetchImageURL } from "./modules/image.js";
 import { exec } from "child_process"; // Python 실행을 위한 모듈 추가
 import { connectDB } from "./util/database.js";
@@ -28,21 +27,25 @@ const app = http.createServer(async (request, response) => {
             const trackName = jsonData.track.track_name;
             const artistName = jsonData.artist.artist_name;
 
-            const lyrics = await getLyrics(trackName, artistName);
-
-            // openAI image 불러오기
+            // openAI imageURL 불러오기
             const imageURL = await fetchImageURL(trackName);
 
+            // db에 imageURL 넣기
             const db = (await connectDB).db("JourneySummer");
             let result = await db
               .collection("image_url")
-              .insertOne({ _id: { $oid: "1" }, img_url: { imageURL } });
+              .insertOne({ img_url: { imageURL } });
 
             console.log(result);
 
-            response.writeHead(200, { "Content-Type": "text/plain" });
+            // db에서 imageURL 불러오기
+            let dbImage = await db.collection("image_url").find().toArray();
+
+            console.log(dbImage);
+
+            response.writeHead(200);
             response.end(
-              `Track Name: ${trackName}\n\nimageURL: ${imageURL}\n\nLyrics:\n${lyrics}`
+              `Track Name: ${trackName}\n\nimageURL: ${imageURL}\n\n ${dbImage}`
             );
           } catch (jsonError) {
             console.error(jsonError);
@@ -62,4 +65,4 @@ const app = http.createServer(async (request, response) => {
   }
 });
 
-app.listen(3001);
+app.listen(3000);
